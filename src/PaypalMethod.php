@@ -90,7 +90,7 @@ class PaypalMethod implements IPaymentMethod
         }
         
         Session::put('paypal_payment_id', $payment->getId());
-        //Session::put('paypal_api_context', $this->apiContext);
+        Session::put('paypal_api_context', $this->apiContext);
         $log = new PaypalTransaction();
         $log->trans = $trans->trans_id;
         $log->payment_id = $payment->getId();
@@ -115,7 +115,7 @@ class PaypalMethod implements IPaymentMethod
 
     public function config($cfg)
     {
-        Session::put('paypal_config', $cfg);
+        //Session::put('paypal_config', $cfg);
         $this->apiContext = new ApiContext(new OAuthTokenCredential($cfg['client_id'], $cfg['secret']));
         $this->apiContext->setConfig($cfg['settings']);
     }
