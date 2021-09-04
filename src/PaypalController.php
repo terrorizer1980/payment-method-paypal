@@ -24,31 +24,30 @@ class PaypalController extends BaseController
         Log::debug("Paypal callback dump:" . print_r($request->all(), true));
         $payment_id = Session::get('paypal_payment_id');
         Log::debug('Paypal payment id' . $payment_id);
-        //Session::forget('paypal_payment_id');
         if (!$request->has('PayerID') && !$request->has('token')) {
-            //Session::put('paypal_error', 'Payment failed');
             return view('hanoivip::payment-paypal-failure', ['error' => __('hanoivip::payment.paypal.invalid-callback')]);
         }
         $payerId = $request->input('PayerID');
         $token = $request->input('token');
-        //$cfg = Session::get('paypal_config');
-        //Log::debug(print_r($cfg, true));
-        //$apiContext = new ApiContext(new OAuthTokenCredential($cfg['client_id'], $cfg['secret']));
-        //$apiContext->setConfig($cfg['settings']);
         $apiContext = Session::get('paypal_api_context');
         $payment = Payment::get($payment_id, $apiContext);
         $execution = new PaymentExecution();
         $execution->setPayerId($payerId);
-        /**Execute the payment **/
         $paymentResult = $payment->execute($execution, $apiContext);
-        // todo: need to save paypal transaction
         $this->savePaymentResult($payment_id, $payerId, $paymentResult);
         if ($paymentResult->getState() == 'approved') {
+			$this->clearSession();
             return view('hanoivip::payment-paypal-success');
         }
-        //Session::put('paypal_error', 'Payment failed. Please try again.');
+		$this->clearSession();
         return view('hanoivip::payment-paypal-failure', ['error' => __('hanoivip::payment.paypal.failure')]);
     }
+	
+	private function clearSession()
+	{
+		Session::forget('paypal_payment_id');
+		Session::forget('paypal_api_context');
+	}
     
     /**
      * 
